@@ -34,6 +34,13 @@ function toInnerHTML(str) {
     return word_array.join('');
 };
 
+function updateCursor() {
+
+    cursorElement.remove();
+    const parentElement = document.getElementById(currentIndex).parentElement;
+    parentElement.insertBefore(cursorElement, document.getElementById(currentIndex));
+}
+
 let typeText = "There was a leak in the boat. Nobody had yet noticed it, and nobody would for the next couple of hours. This was a problem since the boat was heading out to sea and while the leak was quite small at the moment, it would be much larger when it was ultimately discovered. John had planned it exactly this way.";
 typeText = preprocessText(typeText);
 
@@ -44,12 +51,18 @@ document.body.appendChild(textContainer);
 
 
 let currentIndex = 0;
+let cursorElement = document.createElement('span');
+cursorElement.setAttribute('id', 'cursor');
+cursorElement.textContent = '|';
+
+updateCursor();
 
 document.onkeydown = (e) => {
 
     const pressedKey = e.key;
 
     if (pressedKey === 'Backspace') {
+
         previousIndex = currentIndex - 1 < 0 ? 0 : currentIndex - 1
         document.getElementById(previousIndex).style.color = '#cbcbcb';
         document.getElementById(previousIndex).style.textDecoration = 'none';
@@ -64,7 +77,6 @@ document.onkeydown = (e) => {
     else if (pressedKey !== typeText[currentIndex]) {
 
         if (typeText[currentIndex] === ' ') {
-            console.log('space');
             document.getElementById(currentIndex).style.textDecoration = 'underline';
         }
 
@@ -75,4 +87,6 @@ document.onkeydown = (e) => {
     if (currentIndex === typeText.length) {
         alert('You have successfully typed the text.');
     }
+
+    updateCursor();
 }

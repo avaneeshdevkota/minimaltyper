@@ -30,6 +30,24 @@ body {
     align-items: center;
 }
 
+#cursor {
+    display: inline-block;
+    width: 0;
+    border-left: 2px solid #818181;
+    height: 1em;
+    animation: blink 0.5s step-end infinite;
+    vertical-align: bottom;
+}
+
+@keyframes blink {
+    from, to {
+        border-color: #818181;
+    }
+    50% {
+        border-color: transparent;
+    }
+}
+
 ::selection {
     background: yellow;
 }
