@@ -105,10 +105,26 @@ async function getRandomArticle() {
 async function main() {
 
     let [text, textInner] = await getRandomArticle();
+    let userTyped = [];
 
     let textContainer = document.createElement('div');
-    textContainer.setAttribute('id', 'textContainer')
+    textContainer.setAttribute('id', 'textContainer');
+
+
     textContainer.innerHTML = textInner;
+
+    let stopwatch = document.createElement('div');
+    stopwatch.setAttribute('id', 'stopwatch');
+    stopwatch.textContent = '00:00';
+    
+    let banner = document.createElement('div');
+    banner.setAttribute('id', 'banner');
+    banner.textContent = 'Press Enter to start typing.';
+    
+    let started = false;
+    let startTime;
+
+    document.body.appendChild(banner);
     document.body.appendChild(textContainer);
 
     cursorElement.textContent = '|';
@@ -118,39 +134,98 @@ async function main() {
 
         const pressedKey = e.key;
 
-        if (pressedKey === 'Enter' && currentIndex === text.length) {
-            location.reload();
+        if (!started && pressedKey === 'Enter') {
+
+            started = true;
+            banner.remove();
+            document.body.insertBefore(stopwatch, textContainer);
+
+            startTime = new Date().getTime();
+
+            setInterval(() => {
+                let currentTime = new Date().getTime();
+                let elapsedTime = currentTime - startTime;
+                let minutes = Math.floor(elapsedTime / 60000);
+                let seconds = Math.floor((elapsedTime % 60000) / 1000);
+                stopwatch.textContent = `${minutes < 10 ? '0' + minutes : minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
+            }, 1000);
         }
+
+        else if (started) {
     
-        if (pressedKey === 'Backspace') {
-    
-            previousIndex = currentIndex - 1 < 0 ? 0 : currentIndex - 1
-            document.getElementById(previousIndex).style.color = '#cbcbcb';
-            document.getElementById(previousIndex).style.textDecoration = 'none';
-            currentIndex = previousIndex;
-        }
-    
-        else if (pressedKey === text[currentIndex]) {
-            document.getElementById(currentIndex).style.color = '#818181';
-            currentIndex += 1
-        }
-    
-        else if (pressedKey !== text[currentIndex]) {
-    
-            if (text[currentIndex] === ' ') {
-                document.getElementById(currentIndex).style.textDecoration = 'underline';
+            if (pressedKey === 'Backspace') {
+        
+                previousIndex = currentIndex - 1 < 0 ? 0 : currentIndex - 1
+                document.getElementById(previousIndex).style.color = '#cbcbcb';
+                document.getElementById(previousIndex).style.textDecoration = 'none';
+                currentIndex = previousIndex;
+                
+                if (userTyped.length > 0) {
+                    userTyped.pop();
+                }
             }
-    
-            document.getElementById(currentIndex).style.color = '#c30101';
-            currentIndex += 1;
+        
+            else if (pressedKey === text[currentIndex]) {
+
+                document.getElementById(currentIndex).style.color = '#818181';
+                currentIndex += 1;
+            }
+        
+            else if (pressedKey !== text[currentIndex]) {
+        
+                if (text[currentIndex] === ' ') {
+                    document.getElementById(currentIndex).style.textDecoration = 'underline';
+                }
+        
+                document.getElementById(currentIndex).style.color = '#c30101';
+                currentIndex += 1;
+            }
+
+            if (pressedKey.length == 1 && pressedKey.match(/[a-z ]/i)) {
+                userTyped.push(pressedKey);
+            }
+        
+            if (currentIndex === text.length) {
+
+                textContainer.remove();
+                stopwatch.remove();
+
+                let wpm = Math.floor(text.split(' ').length / (parseInt(stopwatch.textContent.split(':')[0]) + parseInt(stopwatch.textContent.split(':')[1]) / 60));
+                let accuracy = calculateAccuracy(userTyped, text);
+                let logoh1 = document.getElementById('minimal');
+
+                let wpmElement = document.createElement('div');
+                let accuracyElement = document.createElement('div');
+
+                wpmElement.setAttribute('id', 'wpm');
+                accuracyElement.setAttribute('id', 'accuracy');
+
+                logoh1.textContent = 'Your Results';
+                wpmElement.textContent = `WPM: ${wpm}`;
+                accuracyElement.textContent = `Accuracy: ${accuracy * 100}%`;
+
+                document.body.appendChild(wpmElement);
+                document.body.appendChild(accuracyElement);
+            }
+
+            updateCursor();
         }
-    
-        if (currentIndex === text.length) {
-            alert('You have successfully typed the text.');
-        }
-    
-        updateCursor();
     }
+}
+
+function calculateAccuracy(userTyped, text) {
+
+    let n = text.length;
+    let correct = 0;
+
+    for (let i = 0; i < n; i++) {
+        console.log(text[i], userTyped[i]);
+        if (text[i] === userTyped[i]) {
+            correct += 1;
+        }
+    }
+
+    return Math.round(correct / n * 100) / 100;
 }
 
 function updateCursor() {
